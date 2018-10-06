@@ -25,9 +25,8 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
         self.data_init()
         self.mframe = mainbrowser( self.mainframe )
         self.oframe = originbrowser( self.mainframe )
-        #self.fframe = subbrowser( self.mainframe )#統合して廃止に
         self.abcdframe = abcdbrowser( self.mainframe )
-        #self.liframe = linesearchbrowser( self.mainframe )#追加。組み合わせ検索予定
+
         
         self.setWidgets()
         self.setMenu( self.mainframe )
@@ -290,9 +289,9 @@ class mainbrowser:
         self.btbroodmare = tk.Button(self.f1, text='配合情報', bg='light cyan',
                              bd=2 , padx =5 , command = self.call_broodmare_show(0))
         #検索表示の設定
-        self.describe_check = tk.Checkbutton(self.f1 , text = 'インブリード詳細表示', variable = self.describe,
+        self.describe_check = tk.Checkbutton(self.f1 , text = 'インブリード詳細表示(1代完璧or見事)', variable = self.describe,
                                           onvalue = True , offvalue = False )
-        self.describe2_check = tk.Checkbutton(self.f1 , text = '面白種牡馬詳細表示', variable = self.o_describe,
+        self.describe2_check = tk.Checkbutton(self.f1 , text = '面白種牡馬詳細表示(新規種牡馬作成向け情報)', variable = self.o_describe,
                                           onvalue = True , offvalue = False )
         self.describe3_check = tk.Checkbutton(self.f1 , text = '非凡所持馬詳細表示', variable = self.a_describe,
                                           onvalue = True , offvalue = False )
@@ -326,6 +325,7 @@ class mainbrowser:
 
         #隠し機能(一部右クリック対応)
         self.btstallion.bind('<Button-3>', self.addBT )#検索ボタンで面白配合の種牡馬一括作成(ｔｍｐとして
+        self.btbroodmare.bind('<Button-3>', self.addBT )#検索ボタンで面白配合の種牡馬一括作成(ｔｍｐとして
         self.btchilds.bind('<Button-3>', self.addBT )#検索ボタンｔｍｐとして仔馬の作成
         self.btchildb.bind('<Button-3>', self.addBT )#検索ボタンｔｍｐとして仔馬の作成
 
@@ -337,27 +337,38 @@ class mainbrowser:
         couplelist = []
 
         #推された元のボタンによって処理を変える
-        if event.widget == self.btstallions:
-            print('面白配合一括作成')
+        if event.widget == self.btstallion:#牡馬から、面白配合成立の牝馬リストとの種牡馬を一括作成  
+            print('tmpに完璧配合可能種牡馬一括作成')
             snum = int( self.slist.get( tk.ACTIVE )[:3] )
             #リスト作成
-            omoshiro = self.stallion_funnysearch(snum)
+            omoshiro = ds.stallions[snum].funnysearch('s' , ds.broodmares )
             if len(omoshiro) != 0:
                 for o in omoshiro:
                     couplelist.append( ( snum , o) )
-                originbrowser.add_tmphorse_from_other( 'm' , couplelist )
+                originbrowser.add_tmphorse_from_other( 's' , couplelist )#種牡馬をtmpに作成
+                print('...終了')
+        elif event.widget == self.btbroodmare:#牝馬から、面白配合成立の種牡馬との種牡馬を一括作成
+            print('tmpに完璧配合可能種牡馬一括作成')
+            bnum = int( self.blist.get( tk.ACTIVE )[:3] )
+            #リスト作成
+            omoshiro = ds.broodmares[bnum].funnysearch('b' , ds.stallions )
+            if len(omoshiro) != 0:
+                for o in omoshiro:
+                    couplelist.append( ( o, bnum ) )
+                originbrowser.add_tmphorse_from_other( 's' , couplelist )#種牡馬をtmpに作成
+                print('...終了')
 
         elif event.widget == self.btchilds:
             print('tmp作成牡馬')
             snum = int( self.slist.get( tk.ACTIVE )[:3] )#リストの選択された行が何行目かを取得 0スタート
             fnum = int( self.blist.get( tk.ACTIVE )[:3] )#リストの選択された行が何行目かを取得 0スタート
-            originbrowser.add_tmphorse_from_other( 'm' , [(snum , fnum)] )
+            originbrowser.add_tmphorse_from_other( 's' , [(snum , fnum)] )#種牡馬をtmpに作成
 
         elif event.widget == self.btchildb:
             print('tmp作成牝馬')
             snum = int( self.slist.get( tk.ACTIVE )[:3] )#リストの選択された行が何行目かを取得 0スタート
             fnum = int( self.blist.get( tk.ACTIVE )[:3] )#リストの選択された行が何行目かを取得 0スタート
-            originbrowser.add_tmphorse_from_other( 'f' , [(snum , fnum)] )
+            originbrowser.add_tmphorse_from_other( 'b' , [(snum , fnum)] )#牝馬をtmpに作成
 
 
     #リスト選択中の種牡馬、牝馬の組み合わせで出来た馬が繁殖牝馬になった場合の配合情報
@@ -394,6 +405,30 @@ class mainbrowser:
                 txt = '    ' + str (ds.stallions[i].rare) + ' ' + ds.stallions[i].name + '\n'
                 self.firstwindow.insert( tk.END , txt , 'blue' )
                 self.stallion_inbreed_show( ds.stallions[i] , bro )
+
+
+        #面白配合になる種牡馬の表示
+        txt = '\n\n\n1代で面白い配合になる種牡馬は...\n\n'
+        self.firstwindow.insert( tk.END , txt , 'green' )
+        omoshiro = []#面白い配合が成立する繁殖牝馬の番号を取得
+        omoshiro = bro.funnysearch( 'b' , ds.stallions )
+        if len(omoshiro) != 0:
+            for i in omoshiro:
+                if i not in great and i not in perfect:#見事完璧と重複していれば表示しない
+                    txt = '      {} {}\n'.format( ds.stallions[i].name , ds.stallions[i].rare )
+                    self.firstwindow.insert( tk.END , txt , 'green' )
+                    #追加。詳細表示チェック状態なら、配合で出来た場合の馬のインブリード詳細表示のテキストを返す
+                    if self.o_describe.get() == True:
+                        txt = self.stallion_omoshirotxt_ret( ds.stallions[i] , bro )
+                        self.firstwindow.insert( tk.END , txt)
+        else:
+            txt = 'なし\n\n\n'
+            self.firstwindow.insert( tk.END , txt )
+
+
+
+
+
 
         #牡牝の組み合わせで出来た種牡馬が、見事または完璧な配合の組み合わせがあるのかどうか
         txt = self.search_cross_cross_broodmare( bro )
@@ -487,14 +522,11 @@ class mainbrowser:
             self.firstwindow.insert( tk.END , txt )
         else:
             for i in perfect:#完璧対象になる牝馬の配列番号でイテレート
-                txt = '    ' + str( ds.broodmares[i].rare ) + ' ' + ds.broodmares[i].name + '\n'
+                txt = '    {}: {}\n'.format( ds.broodmares[i].rare ,ds.broodmares[i].name )
                 self.firstwindow.insert( tk.END , txt , 'blue' )
-                self.stallion_inbreed_show( sta, ds.broodmares[i] )#牝馬のインブリードと、クロスがかかっているかを、馬クラスデータを渡して調べ、付加情報もついでに
-                #追加。詳細表示チェック状態なら、配合で出来た場合の馬のインブリード詳細表示のテキストを返す
-                if self.o_describe.get() == True:
-                    tmphorse = sta.make_horse_to_broodmare( ds.broodmares[i] )
-                    txt = tmphorse.show_selfdata()
-                    self.firstwindow.insert( tk.END , txt)
+                self.stallion_inbreed_show( sta, ds.broodmares[i] )#インブリード情報の表示
+                    
+                    
         txt = '\n\n\n1代で見事配合になる繁殖牝馬は...\n\n'
         self.firstwindow.insert( tk.END , txt )
         if len(great) == 0:
@@ -504,7 +536,7 @@ class mainbrowser:
             for i in great:
                 txt = '    ' + ds.broodmares[i].name + ' ' + str ( ds.broodmares[i].rare ) + '\n'
                 self.firstwindow.insert( tk.END , txt , 'blue' )
-                self.stallion_inbreed_show( sta, ds.broodmares[i] )
+                self.stallion_inbreed_show( sta, ds.broodmares[i] )#インブリード情報の表示
 
 
         #よくできた配合になる繁殖牝馬の表示
@@ -558,21 +590,23 @@ class mainbrowser:
         rettxt = '\n    '
         rettxt += '{} X {} ...\n\n'.format( sta.name , bro.name)
         tmp = sta.make_horse_to_broodmare(bro)
-        rettxt += tmp.show_selfdata()
+        rettxt += tmp.show_selfdata_light()
         return rettxt + '\n\n'
 
 
 
     def stallion_inbreed_show(self, sta , bro ):#牝馬broの血統と、牡馬staとのインブリード情報をテキスト表示
+        print('sta',sta.blood)
+        print('bro',bro.blood)
         if self.describe.get() == True:#インブリード詳細表示にチェックがある時
-            txt = '\n     繁殖牝馬 ' + bro.name + '\n'
+            txt = '\n     繁殖牝馬 ' + bro.name + ' の持つ血統\n'
             self.firstwindow.insert( tk.END , txt , 'blue')
-            for i in range( 0 , 15):
+            for i , b in enumerate( bro.blood ):
                 flg = 0
-                tmp = ds.get_inbreed( bro.blood[i] )
-                txt = '        {:<4} {}        {}\n'.format( ds.fmnew[i] , bro.blood[i] , tmp )
-                for j in range( 0,15 ):
-                    if bro.blood[i] == sta.blood[j]:
+                tmp = ds.get_inbreed( b )
+                txt = '        {:<4} {}        {}\n'.format( ds.fmnew[i] , b , tmp )
+                for sb in sta.blood:
+                    if b == sb:#インブリードのクロスがあった場合、色を変える
                         flg = 1
                 if flg == 1:
                     self.firstwindow.insert( tk.END , txt , 'red' )
@@ -580,8 +614,9 @@ class mainbrowser:
                     self.firstwindow.insert( tk.END , txt )
         else:#詳細表示にチェックがない時、もしインブリードがあればあるかどうかだけ簡易表示する
             txt = sta.check_inbreed_light( bro )
+            self.firstwindow.insert( tk.END , txt + '\n\n' )
         
-        self.firstwindow.insert( tk.END , txt + '\n\n' )
+        self.firstwindow.insert( tk.END , '\n\n' )
         self.firstwindow.tag_config( 'red' , underline = 1 , background = '#ff9999')
         self.firstwindow.tag_config( 'blue' , underline = 1 , background = '#bbbbff')
 
@@ -756,8 +791,8 @@ class originbrowser( mainbrowser ):
         self.blist.grid( row = 4 , column = 0 , sticky = 'ns')
         self.bbar.grid( row = 4 , column = 0 , sticky = 'ns' + 'e')
 
-        self.firstwindow = ScrolledText(self.f1 , height = '65' ,
-                                        width = '45' ,padx = '3' , pady = '3' , relief = 'groove')
+        self.firstwindow = ScrolledText(self.f1 , height = '64' ,
+                                        width = '48' ,padx = '3' , pady = '3' , relief = 'groove')
         self.firstwindow.grid( row = 1 , column = 2, rowspan = 4)
 
         #自家製削除用に右クリック対応をバンドル
@@ -798,7 +833,7 @@ class originbrowser( mainbrowser ):
 
         #選択中の2頭を組み合わせた際のインブリードクロスを表示する
         txt += 'インブリード情報\n\n'
-        txt += ' 種牡馬 {} \n'.format( ds.stallions[current_s].name )
+        txt += '        種牡馬 {} \n\n'.format( ds.stallions[current_s].name )
         self.firstwindow.insert( tk.END , txt )
         for i in range( 0 , 15 ):
             flg = 0
@@ -813,7 +848,7 @@ class originbrowser( mainbrowser ):
             else:
                 self.firstwindow.insert( tk.END , txt )
         
-        txt = '\n 繁殖牝馬 {}\n'.format( ds.broodmares[current_b].name)
+        txt = '\n        繁殖牝馬 {}\n\n'.format( ds.broodmares[current_b].name)
         self.firstwindow.insert( tk.END , txt )
         for i in range( 0 , 15):
             flg = 0
@@ -888,6 +923,24 @@ class originbrowser( mainbrowser ):
             self.firstwindow.insert( tk.END , """新馬をテンポラリに追加しました。\n\n
                                     データを残したい場合にはメニューのチェックを外してください\n
                                     かならずプルダウンメニューからデータ更新を行ってください\n""")
+
+
+
+    #テンポラリに指定の馬の組み合わせで作られた馬を登録するメソッド
+    #引数 flg...基礎になるのが牡馬か牝馬か   couplelist.種牡馬番号、牝馬番号の組み合わせタプルのリスト
+    @classmethod
+    def add_tmphorse_from_other(self , flg , couplelist ):
+        tmphorse = self.set_blankhorse( self )
+        for c in couplelist:
+            tmphorse = ds.stallions[ c[0] ].make_horse_to_broodmare(ds.broodmares[ c[1] ] )
+            tmphorse.name = 'T.' + tmphorse.name#テンポラリを表す記号を名前に追加
+            if flg == 's':
+                ds.st_tmp.append( copy.copy(tmphorse) )#テンポラリリストに追加
+            elif flg == 'b':
+                ds.br_tmp.append( copy.copy(tmphorse) )#テンポラリリストに追加
+
+
+
 
 
     #自家製馬の削除機能
@@ -1036,7 +1089,7 @@ class abcdbrowser(originbrowser):
         self.secondbar.grid( row = 4 , column = 3 , sticky = 'ns' + 'e')
 
         self.firstwindow = ScrolledText(self.f1 , height = '70' ,
-                                        width = '56' ,padx = '3' , pady = '3' , relief = 'groove')
+                                        width = '60' ,padx = '3' , pady = '3' , relief = 'groove')
         self.firstwindow.grid( row = 1 , column = 4, rowspan = 6)
 
 
@@ -1081,7 +1134,7 @@ class abcdbrowser(originbrowser):
     def set_mf_list(self , horse ):
         #mflistには、種牡馬の番号と、残りの必要な系統2種類が収められた配列が返ってくる
         self.mf_horse = self.get_mflist( horse )
-        self.set_list_second(self.mf_horse)
+        self.set_list_second( self.mf_horse )
         self.showflg = 0#母父選択状態を示すフラグ
 
 
@@ -1255,7 +1308,8 @@ class abcdbrowser(originbrowser):
                 txt += 'の{} 通り\n\n'.format( len(less) )
                 self.firstwindow.insert ( tk.END , txt )
                 for pair in less:
-                    txt = '===========================================================\n' 
+                    txt = '========================================================\n' 
+                    txt += '========================================================\n' 
                     txt += ' [ {} - {} ] の組み合わせになる牡馬と牝馬\n\n\n'.format( pair[0] , pair[1] )
                     self.firstwindow.insert ( tk.END , txt ,'purple')
                     self.firstwindow.tag_config( 'purple' , underline = 1 , background = '#ff00ff')
@@ -1835,18 +1889,34 @@ class horse:
         self.migoto[3] = ds.hblood[ self.pedigree[14] ]
 
 
-    #自分の確認表示用のテキストを返す
+    #自分の確認表示用のテキストを返す。その詳細版
+    #返り値は表示用のテキスト
     def show_selfdata(self):
-        txt = '{}\n{}\n'.format(self.name,self.rare)
-        txt += '面白配合用系統 {0[0]} {0[1]} {0[2]} {0[3]}\n'.format( self.omoshiro )
-        txt += '見事配合用系統 {0[0]} {0[1]} {0[2]} {0[3]}\n'.format( self.migoto )
-        txt += 'インブリード血統\n'
+        txt = 'Rare:{} {}\n\n'.format( self.rare , self.name )
+        txt += '面白配合用系統  {0[0]} {0[1]} {0[2]} {0[3]}\n'.format( self.omoshiro )
+        txt += '見事配合用系統  {0[0]} {0[1]} {0[2]} {0[3]}\n\n'.format( self.migoto )
+        txt += 'インブリード血統\n\n'
         for i in range(0,15):
             txt += '{} {}    {}\n'.format( ds.fmnew[i] , self.blood[i] , ds.get_inbreed( self.blood[i] ) )
-        txt += '\n系統\n'
+        txt += '\n\n系統\n\n'
         for i in range(0,15):
             txt += '{} {}\n'.format( ds.fmnew[i] , self.pedigree[i] )
         return txt
+
+    #自分のデータ確認表示用、その項目を絞ったもの
+    #返り値は表示用のテキスト
+    def show_selfdata_light(self):
+        txt = 'Rare:{} {}\n\n'.format( self.rare , self.name )
+        txt += '面白配合用系統  {0[0]} {0[1]} {0[2]} {0[3]}\n\n'.format( self.omoshiro )
+        txt += '見事配合用系統  {0[0]} {0[1]} {0[2]} {0[3]}\n\n\n'.format( self.migoto )
+        txt += 'インブリード血統\n\n'
+        for i in range(0,15):
+            tmp = ds.get_inbreed( self.blood[i] )
+            if tmp != '':
+                txt += '{} に {}    {} のインブリードあり\n'.format( ds.fmnew[i] , self.blood[i] ,tmp)
+
+        return txt
+
 
 
     #外部から呼ばれる、検索対象フラグをセットするメソッド
@@ -1883,13 +1953,13 @@ class horse:
     def check_inbreed_light(self , horse ):
         tmp = ''#インブリードの効果があるかどうかの返り値受け
         rettxt = ''
-    
         for i in self.blood:#自分のインブリード血統でイテレート
             tmp = ds.get_inbreed( i )#血統名を渡して、インブリード効果があるのならその効果名が返ってくる
             #馬と血統がクロスしていれば効果を記載
             if tmp != '':#チェック中の血統が効果があるインブリードを持っているのなら
                 if i in horse.blood:#なおかつ対象馬のインブリードとクロスしているのか
-                    rettxt = '{}  _{}のインブリードあり\n'.format( i , tmp)
+                    rettxt += '{}  _{}のインブリードあり\n'.format( i , tmp)
+            tmp = ''
 
         return rettxt
 
@@ -1917,6 +1987,7 @@ class horse:
     #flgは使わないが、形式併せるために残しとく
     def funnysearch(self , flg , horse ):
         retlist = []
+        
         for i,h in enumerate( horse ):
             if ds.search_funny( h.omoshiro + self.omoshiro ):#牝馬の面白リスト、牡馬の見事リストを渡すとフラグが返ってくる
                 retlist.append(i)
@@ -1935,8 +2006,8 @@ class horse:
         if len(b_horse.name) < 4:
             b_namelen = len(b_horse.name)
 
-        tmpdat.append('T.' + self.name[: s_namelen ] + ' x ' + b_horse.name[:b_namelen ] )#名前
-        tmpdat.append(self.rare)#レア度
+        tmpdat.append( self.name[: s_namelen ] + ' x ' + b_horse.name[:b_namelen ] )#名前
+        tmpdat.append( self.rare )#レア度
         #インブリード血統名
         #まず自分の名前
         #追加処理、年号馬の年号を抜く処理
@@ -2001,5 +2072,6 @@ if __name__ == '__main__':
 
     f = topframe()
     f.mainframe.title('derby browser')
+    f.mainframe.geometry(ds.WINDOWSIZE)#変更したい場合はdsconfig.pyを変更
     f.mainframe.mainloop()
 
