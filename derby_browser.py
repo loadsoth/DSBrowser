@@ -47,22 +47,23 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
 
 
     def setWidgets ( self ):
-        button = Ft.Font(size = 12 , family = 'Arial' , weight = 'bold' )
+        self.font_button = Ft.Font(size = 12 , family = 'Arial' , weight = 'bold' )
+        
         self.f0 = tk.Frame( self.mainframe , relief=tk.RIDGE, bd=3 )#親フレーム
         #機能切り替えボタン1
-        self.btload01 = tk.Button(self.f0, text='A-(BC)サーチ', bg='deep sky blue', font = button ,
+        self.btload01 = tk.Button(self.f0, text='A-(BC)サーチ', bg='deep sky blue', font = self.font_button ,
                              bd=3 , padx =3 , command = self.show_main_browser )
         self.btload01.grid(row = 0 , column = 0)
         #機能切り替えボタン2
-        self.btload02 = tk.Button(self.f0, text='自家製メンテ', bg='red', font = button ,
+        self.btload02 = tk.Button(self.f0, text='自家製メンテ', bg='red', font = self.font_button ,
                              bd=3 , padx =3 , command = self.show_origin_browser )
         self.btload02.grid(row = 0 , column = 2)
         #機能切り替えボタン3
-        self.btload03 = tk.Button(self.f0, text='A-(B-CD)サーチ', bg='azure2', font = button ,
+        self.btload03 = tk.Button(self.f0, text='A-(B-CD)サーチ', bg='azure2', font = self.font_button ,
                              bd=3 , padx =3 , command = self.show_abcd_browser )
         self.btload03.grid(row = 0 , column = 3)
         #機能切り替えボタン4(休止中)
-        self.btload04 = tk.Button(self.f0, text='血統検索', bg='azure3', font = button ,
+        self.btload04 = tk.Button(self.f0, text='血統検索', bg='azure3', font = self.font_button ,
                              bd=3 , padx =3 , command = self.pop_search_browser )
         #self.btload04.grid(row = 0 , column = 4)
         self.f0.grid(row = 0 , column = 0)
@@ -268,8 +269,10 @@ class mainbrowser:
         self.a_describe.set(False)
 
 
-    #表示ウィジェット初期化
+    #表示ウィジェット初期化 
     def setWidgets( self , frame ):
+        self.font_button = Ft.Font(size = 10 , family = 'Arial' , weight = 'bold' )
+        self.font_button2 = Ft.Font(size = 9 , family = 'Arial' , weight = 'bold' )
 
         self.f1 = tk.Frame( frame , relief=tk.RIDGE, bd=2 )#フレーム
         #種牡馬表示リスト
@@ -283,10 +286,10 @@ class mainbrowser:
         self.blist.configure(yscrollcommand = self.bbar.set)
 
         #検索ボタン(牡馬
-        self.btstallion = tk.Button(self.f1, text='配合情報', bg='light cyan',
+        self.btstallion = tk.Button(self.f1, text='配合情報(牡', bg='light cyan',font = self.font_button ,
                              bd=2 , padx =5 , command = self.call_stallion_show(0))
         #検索ボタン(牝馬
-        self.btbroodmare = tk.Button(self.f1, text='配合情報', bg='light cyan',
+        self.btbroodmare = tk.Button(self.f1, text='配合情報(牝', bg='light cyan',font = self.font_button ,
                              bd=2 , padx =5 , command = self.call_broodmare_show(0))
         #検索表示の設定
         self.describe_check = tk.Checkbutton(self.f1 , text = 'インブリード詳細表示(1代完璧or見事)', variable = self.describe,
@@ -297,9 +300,9 @@ class mainbrowser:
                                           onvalue = True , offvalue = False )
 
         #検索ボタン(子) 
-        self.btchilds = tk.Button(self.f1, text='子供の情報(牡', bg='spring green',
+        self.btchilds = tk.Button(self.f1, text='子供の情報(牡', bg='spring green',font = self.font_button2 ,
                              bd=2 , padx =5 , command = self.call_stallion_show(1) )
-        self.btchildb = tk.Button(self.f1, text='子供の情報(牝', bg='linen',
+        self.btchildb = tk.Button(self.f1, text='子供の情報(牝', bg='linen',font = self.font_button2 ,
                              bd=2 , padx =5 , command = self.call_broodmare_show(1) )
 
         self.btstallion.grid(row = 3 , column = 0)
@@ -596,8 +599,8 @@ class mainbrowser:
 
 
     def stallion_inbreed_show(self, sta , bro ):#牝馬broの血統と、牡馬staとのインブリード情報をテキスト表示
-        print('sta',sta.blood)
-        print('bro',bro.blood)
+        #print('sta',sta.blood)
+        #print('bro',bro.blood)
         if self.describe.get() == True:#インブリード詳細表示にチェックがある時
             txt = '\n     繁殖牝馬 ' + bro.name + ' の持つ血統\n'
             self.firstwindow.insert( tk.END , txt , 'blue')
@@ -757,8 +760,8 @@ class originbrowser( mainbrowser ):
 
 
     def set_widgets(self , frame ):
-        #button = Ft.Font(size = 10 , family = 'Microsoft YaHei UI' , weight = 'bold' )
-        #msgfont = Ft.Font(size = 8 , family = 'Microsoft Sans Serif' )
+        self.font_button = Ft.Font(size = 9 , family = 'Arial' , weight = 'bold' )
+        self.font_text = Ft.Font(size = 8 , family = 'Arial')
         
         self.f1 = tk.Frame( frame , relief=tk.RIDGE, bd=2 )
         #種牡馬表示リスト
@@ -770,11 +773,11 @@ class originbrowser( mainbrowser ):
         self.bbar = tk.Scrollbar(self.f1, orient = 'v', command = self.blist.yview )
         self.blist.configure(yscrollcommand = self.bbar.set)
 
-        self.btstallions = tk.Button(self.f1, text='牡馬として保存', bg='cyan2',
+        self.btstallions = tk.Button(self.f1, text='牡馬として保存', bg='cyan2',font = self.font_button ,
                              bd=2 , padx =5 , command = self.make_s)
-        self.btbroodmare = tk.Button(self.f1, text='牝馬として保存', bg='yellow2',
+        self.btbroodmare = tk.Button(self.f1, text='牝馬として保存', bg='yellow2',font = self.font_button ,
                              bd=2 , padx =5 , command = self.make_b)
-        self.showinfo = tk.Button(self.f1, text='データ確認', bg='red',
+        self.showinfo = tk.Button(self.f1, text='データ確認', bg='red',font = self.font_button ,
                              bd=2 , padx =5 , command = self.newhorse_show )
         #名前入力欄
         self.ent01 = tk.Entry(self.f1 , textvariable = self.newname , width = 20)
@@ -791,7 +794,7 @@ class originbrowser( mainbrowser ):
         self.blist.grid( row = 4 , column = 0 , sticky = 'ns')
         self.bbar.grid( row = 4 , column = 0 , sticky = 'ns' + 'e')
 
-        self.firstwindow = ScrolledText(self.f1 , height = '64' ,
+        self.firstwindow = ScrolledText(self.f1 , height = '64' , font = self.font_text ,
                                         width = '48' ,padx = '3' , pady = '3' , relief = 'groove')
         self.firstwindow.grid( row = 1 , column = 2, rowspan = 4)
 
@@ -1047,8 +1050,7 @@ class abcdbrowser(originbrowser):
         
 
     def set_widgets(self , frame ):
-        #button = Ft.Font(size = 10 , family = 'Microsoft YaHei UI' , weight = 'bold' )
-        #msgfont = Ft.Font(size = 8 , family = 'Microsoft Sans Serif' )
+        self.font_text = Ft.Font(size = 8 , family = 'Arial')
         
         self.f1 = tk.Frame( frame , relief=tk.RIDGE, bd=2 )
         #種牡馬表示リスト
@@ -1088,7 +1090,7 @@ class abcdbrowser(originbrowser):
         self.secondlist.grid( row = 4 , column = 0 , columnspan = 3 ,sticky = 'ns')
         self.secondbar.grid( row = 4 , column = 3 , sticky = 'ns' + 'e')
 
-        self.firstwindow = ScrolledText(self.f1 , height = '70' ,
+        self.firstwindow = ScrolledText(self.f1 , height = '70' , font = self.font_text ,
                                         width = '60' ,padx = '3' , pady = '3' , relief = 'groove')
         self.firstwindow.grid( row = 1 , column = 4, rowspan = 6)
 
@@ -1568,10 +1570,10 @@ class abcdbrowser(originbrowser):
         mf_inbreed = []#空白プラス 母母父になった時の血統名4つ(牝馬なら3つ)
         fmlist = []#父母などの系統の何番目を表示させるのか
         if flg == 's':
-            mf_inbreed.append(horse.name)
+            #mf_inbreed.append(horse.name)
             if self.showflg == 1:#父父の血統を表示する時
                 fmlist = [0,1,2,3,4]
-                showlist = [0,0,1,2,5]
+                showlist = [0,0,1,2,8]#訂正
             elif self.showflg == 0:
                 fmlist = [8,9,10,11]#母父
                 showlist = [0,0,1,8]
