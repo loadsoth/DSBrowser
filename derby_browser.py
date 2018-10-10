@@ -26,7 +26,8 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
         self.mframe = mainbrowser( self.mainframe )
         self.oframe = originbrowser( self.mainframe )
         self.abcdframe = abcdbrowser( self.mainframe )
-
+        self.abcd_B_frame = abcd_broodmare( self.mainframe )
+        self.sframe = thirdframe( self.mainframe )
         
         self.setWidgets()
         self.setMenu( self.mainframe )
@@ -63,9 +64,13 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
                              bd=3 , padx =3 , command = self.show_abcd_browser )
         self.btload03.grid(row = 0 , column = 3)
         #機能切り替えボタン4(休止中)
-        self.btload04 = tk.Button(self.f0, text='血統検索', bg='azure3', font = self.font_button ,
-                             bd=3 , padx =3 , command = self.pop_search_browser )
-        #self.btload04.grid(row = 0 , column = 4)
+        self.btload04 = tk.Button(self.f0, text='A-(B-CD)サーチ(牝', bg='azure3', font = self.font_button ,
+                             bd=3 , padx =3 , command = self.show_abcd_B_browser )
+        self.btload04.grid(row = 0 , column = 4)
+        #機能切り替えボタン5(休止中)
+        self.btload05 = tk.Button(self.f0, text='血統検索', bg='dark sea green', font = self.font_button ,
+                             bd=3 , padx =3 , command = self.show_bloodsearch_browser )
+        self.btload05.grid(row = 0 , column = 5)
         self.f0.grid(row = 0 , column = 0)
 
 
@@ -132,8 +137,8 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
         self.mframe.set_list_b()
         self.oframe.set_list_s()
         self.oframe.set_list_b()
-        self.abcdframe.set_list_first()
-        #ここにテンポラリ馬の事をやらないと？
+        self.abcdframe.set_list_first('s')
+        self.abcd_B_frame.set_list_first('b')
 
 
 
@@ -231,20 +236,31 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
     def show_origin_browser( self ):
         self.oframe.f1.grid(row = 1,column = 1)
         self.abcdframe.f1.grid_remove()
-        #self.liframe.f1.grid_remove()
+        self.abcd_B_frame.f1.grid_remove()
+        self.sframe.f1.grid_remove()
 
 
     #表示するフレームの切り替え
     def show_abcd_browser( self ):
         self.abcdframe.f1.grid(row = 1,column = 1)
         self.oframe.f1.grid_remove()
-        #self.liframe.f1.grid_remove()
+        self.abcd_B_frame.f1.grid_remove()
+        self.sframe.f1.grid_remove()
+
+    #表示するフレームの切り替え（右側をabcd牝馬フレームに
+    def show_abcd_B_browser( self ):
+        self.abcd_B_frame.f1.grid(row = 1,column = 1)
+        self.oframe.f1.grid_remove()
+        self.abcdframe.f1.grid_remove()
+        self.sframe.f1.grid_remove()
 
 
-    #検索フレーム休止中
-    def pop_search_browser( self ):
-        #tk.Toplevel(class_ = thirdframe() )
-        print('pass')
+    #表示するフレーム切り替え（右側を血統検索に
+    def show_bloodsearch_browser( self ):
+        self.sframe.f1.grid(row = 1,column = 1)
+        self.oframe.f1.grid_remove()
+        self.abcdframe.f1.grid_remove()
+        self.abcd_B_frame.f1.grid_remove()
 
 
 
@@ -1031,15 +1047,11 @@ class abcdbrowser(originbrowser):
         super().__init__( frame )
         #追加変更のウィジェット
         
-        
         self.set_widgets( frame )
         
-        self.set_list_first()#種牡馬のリストをセット
+        self.set_list_first('s')#種牡馬のリストをセット
         
-        self.searchbld = ['','','','']
-        self.check_omo = ['','','','','','','','']#追加
         self.mflist = []#母父候補の番号を収めたリスト
-        self.fnumber = 0#現在選択中の父候補の種牡馬番号
         self.mmlist = []#母母候補の番号を収めたリスト
         self.showflg = 0#母系か父系のどちらの検索を行っているのかを示すflg 0 -> 母父 : 1 -> 母母
 
@@ -1062,24 +1074,24 @@ class abcdbrowser(originbrowser):
         self.secondbar = tk.Scrollbar(self.f1, orient = 'v', command = self.secondlist.yview )
         self.secondlist.configure(yscrollcommand = self.secondbar.set)
 
-        self.btstart = tk.Button(self.f1, text='1.種牡馬決定', bg='chocolate1',
+        self.btstart = tk.Button(self.f1, text='1.種牡馬決定', bg='SteelBlue1',
                              bd=2 , padx =5 , command = self.set_first)
-        self.btstallions = tk.Button(self.f1, text='2.母父をリストに表示', bg='chocolate2',
+        self.btstallions = tk.Button(self.f1, text='2.母父をリストに表示', bg='SteelBlue2',
                              bd=2 , padx =5 , command = self.call_second_list('s') )
-        self.btbroodmare = tk.Button(self.f1, text='2.母母をリストに表示', bg='chocolate3',
+        self.btbroodmare = tk.Button(self.f1, text='2.母母をリストに表示', bg='SteelBlue3',
                              bd=2 , padx =5 , command = self.call_second_list('b') )
-        self.btshowinfo = tk.Button(self.f1, text='3.系統データ確認', bg='plum1',
+        self.btshowinfo = tk.Button(self.f1, text='3.系統データ確認', bg='hot pink',
                              bd=2 , padx =5 , command = self.call_second_show )
 
         self.deep = tk.BooleanVar()#多重検索を行うかの機能を追加
         self.deep.set(False)
-        self.deep_check = tk.Checkbutton(self.f1 , text = 'B-CDの配合も検索（時間かかるかも）', variable = self.deep,
+        self.deep_check = tk.Checkbutton(self.f1 , text = 'B-CDの配合も検索（検索対象の数によって時間がかかる）', variable = self.deep,
                                           onvalue = True , offvalue = False )
 
         
 
         self.firstlist.grid( row = 1 , column = 0 , columnspan = 3 ,sticky = 'ns')
-        self.firstbar.grid( row = 1 , column = 3 , sticky = 'ns' + 'e')
+        self.firstbar.grid( row = 1 , column = 2 , sticky = 'ns' + 'e')
 
         self.btstart.grid(row = 2 , column = 0)
         self.btstallions.grid(row = 3 , column = 0)
@@ -1088,7 +1100,7 @@ class abcdbrowser(originbrowser):
         self.deep_check.grid(row = 6 , column = 0 )
         
         self.secondlist.grid( row = 4 , column = 0 , columnspan = 3 ,sticky = 'ns')
-        self.secondbar.grid( row = 4 , column = 3 , sticky = 'ns' + 'e')
+        self.secondbar.grid( row = 4 , column = 2 , sticky = 'ns' + 'e')
 
         self.firstwindow = ScrolledText(self.f1 , height = '70' , font = self.font_text ,
                                         width = '60' ,padx = '3' , pady = '3' , relief = 'groove')
@@ -1099,7 +1111,7 @@ class abcdbrowser(originbrowser):
     def set_first(self):
         
         c = int( self.firstlist.get( tk.ACTIVE )[:3] )#リストから選択された、父になる種牡馬の基本となる馬の番号
-        self.fnumber = c
+        #self.fnumber = c
 
         self.firstwindow.delete( 0.0 , tk.END )
         txt = ds.stallions[c].name + '\n\n'   
@@ -1136,7 +1148,7 @@ class abcdbrowser(originbrowser):
     def set_mf_list(self , horse ):
         #mflistには、種牡馬の番号と、残りの必要な系統2種類が収められた配列が返ってくる
         self.mf_horse = self.get_mflist( horse )
-        self.set_list_second( self.mf_horse )
+        self.set_list_second( self.mf_horse , 'b' )
         self.showflg = 0#母父選択状態を示すフラグ
 
 
@@ -1167,7 +1179,7 @@ class abcdbrowser(originbrowser):
     def set_mm_list(self, horse ):
         #mflistには、牝馬の番号が返ってくる
         self.mm_horse = self.get_mmlist( horse )
-        self.set_list_second( self.mm_horse )
+        self.set_list_second( self.mm_horse , 'b' )
         self.showflg = 1#母母選択状態を示すフラグ
 
 
@@ -1257,18 +1269,18 @@ class abcdbrowser(originbrowser):
             
             if self.showflg == 0:#リストが父系
                 #完璧配合チェック用の配列に系統をセットする
-                self.check_omo[4] = self.mf_horse[sc].omoshiro[0]
-                self.check_omo[5] = self.mf_horse[sc].omoshiro[2]#父父の種牡馬作成時の面白チェック用の系統二つ
+                #self.check_omo[4] = self.mf_horse[sc].omoshiro[0]
+                #self.check_omo[5] = self.mf_horse[sc].omoshiro[2]#父父の種牡馬作成時の面白チェック用の系統二つ
                 
                 txt = '\n\n    母父の持つ系統  \n'
                 self.firstwindow.insert ( tk.END , txt )
-                txt = '{}  '.format(self.mf_horse[sc].omoshiro[0])
+                txt = '{}'.format(self.mf_horse[sc].omoshiro[0])
                 self.firstwindow.insert ( tk.END , txt , 'blue')
-                txt = '{}  '.format(self.mf_horse[sc].omoshiro[1])
+                txt = '  {}  '.format(self.mf_horse[sc].omoshiro[1])
                 self.firstwindow.insert ( tk.END , txt )
-                txt = '{}  '.format(self.mf_horse[sc].omoshiro[2])
+                txt = '{}'.format(self.mf_horse[sc].omoshiro[2])
                 self.firstwindow.insert ( tk.END , txt , 'blue')
-                txt = '{}'.format(self.mf_horse[sc].omoshiro[3])
+                txt = '  {}'.format(self.mf_horse[sc].omoshiro[3])
                 self.firstwindow.insert ( tk.END , txt )
                 txt = '\n    母父の持つインブリード血統\n\n'
                 self.firstwindow.insert ( tk.END , txt )
@@ -1280,18 +1292,18 @@ class abcdbrowser(originbrowser):
                 
             elif self.showflg == 1:#リストが母系
                 #完璧配合チェック用の配列に系統をセットする
-                self.check_omo[4] = self.mm_horse[sc].omoshiro[0]
-                self.check_omo[5] = self.mm_horse[sc].omoshiro[2]#父父の種牡馬作成時の面白チェック用の系統二つ
+                #self.check_omo[4] = self.mm_horse[sc].omoshiro[0]
+                #self.check_omo[5] = self.mm_horse[sc].omoshiro[2]#父父の種牡馬作成時の面白チェック用の系統二つ
                 
                 txt = '\n\n    母母の持つ系統 \n'
                 self.firstwindow.insert ( tk.END , txt )
-                txt = '{}  '.format( self.mm_horse[sc].omoshiro[0] )
+                txt = '{}'.format( self.mm_horse[sc].omoshiro[0] )
                 self.firstwindow.insert ( tk.END , txt , 'blue' )
-                txt = '{}  '.format( self.mm_horse[sc].omoshiro[1] )
+                txt = '  {}  '.format( self.mm_horse[sc].omoshiro[1] )
                 self.firstwindow.insert ( tk.END , txt )
-                txt = '{}  '.format( self.mm_horse[sc].omoshiro[2] )
+                txt = '{}'.format( self.mm_horse[sc].omoshiro[2] )
                 self.firstwindow.insert ( tk.END , txt , 'blue' )
-                txt = '{}  '.format( self.mm_horse[sc].omoshiro[3] )
+                txt = '  {}  '.format( self.mm_horse[sc].omoshiro[3] )
                 self.firstwindow.insert ( tk.END , txt )
                 
                 txt = '\n    母母の持つインブリード血統\n\n'                
@@ -1429,15 +1441,24 @@ class abcdbrowser(originbrowser):
 
 
     #種牡馬を選択するためのリスト作成
-    def set_list_first(self):
+    #flg='s' or 'b'で牡馬か牝馬か
+    def set_list_first(self , flg ):
         st_list = []#リストに表示するための文字列のリスト
         tmp = ''
         lastnum = self.firstlist.index( tk.END )
         self.firstlist.delete( 0 , lastnum )#一旦リストを削除
+        chklist = []
+        if flg == 's':
+            chklist = ds.stallions
+        else:
+            chklist = ds.broodmares
         
-        for i,horse in enumerate( ds.stallions ):
+        for i,horse in enumerate( chklist ):
             tmp = '{:>03} {:>15} {}'.format(str(i) , horse.name , horse.rare)
-            tmp += '-- {0[0]} {0[1]} {0[2]} {0[3]} -- {1[0]} {1[1]} {1[2]} {1[3]}'.format( horse.omoshiro , horse.migoto)
+            if flg == 's':
+                tmp += '-- {0[0]} {0[1]} {0[2]} {0[3]} -- {1[0]} {1[1]} {1[2]} {1[3]}'.format( horse.omoshiro , horse.migoto)
+            else:
+                tmp += '-- {0[0]} {0[1]} {0[2]} {0[3]}'.format( horse.omoshiro )
             st_list.append(tmp)
         for i in range( len( st_list ) ):#文字列をボックスにセット
             self.firstlist.insert ( i , st_list[i] )   
@@ -1445,15 +1466,21 @@ class abcdbrowser(originbrowser):
 
     #母父を選択するためのリスト作成
     #引数は対象となる種牡馬のデータクラスが入ったリスト
-    def set_list_second(self , h_list ):
+    #引数flgは、リスト表示対象馬が's' or 'b' で父系に入った時の血統を表示するのか母系の血統を表示なのか
+    #'s'はabcd_bで、'b'はabcdで使う
+    def set_list_second(self , h_list , flg ):
         st_list = []#リストに表示するための文字列のリスト
         tmp = ''
         lastnum = self.secondlist.index( tk.END )
         self.secondlist.delete( 0 , lastnum )#リストの初期化
 
         for i,h in enumerate(h_list):
-            tmp = '{:>03} {:>15} {} --牝馬時の面白系統 {} {} '.format( i , h.name ,
+            if flg == 'b':
+                tmp = '{:>03} {:>15} {} --牝馬時の面白系統 {} {} '.format( i , h.name ,
                    h.rare , h.omoshiro[0] , h.omoshiro[2])
+            else:
+                tmp = '{:>03} {:>15} {} --牡馬時の見事系統 {} {} '.format( i , h.name ,
+                   h.rare , h.omoshiro[1] , h.omoshiro[3])
             st_list.append(tmp)
         
         for i in range( len( st_list ) ):#登場パターンをボックスにセット
@@ -1462,15 +1489,20 @@ class abcdbrowser(originbrowser):
 
     #母母を選択するためのリスト作成
     #引数は対象となる繁殖牝馬のデータクラスが入ったリスト
-    def set_list_second_B(self , h_list ):
+    #引数flgは、リスト表示対象馬が's' or 'b' で父系に入った時の血統を表示するのか母系の血統を表示なのか
+    def set_list_second_B(self , h_list , flg ):
         st_list = []#リストに表示するための文字列のリスト
         tmp = ''
         lastnum = self.secondlist.index( tk.END )
         self.secondlist.delete( 0 , lastnum )
 
         for i,h in enumerate(h_list):
-            tmp = '{:>03} {:>15} {} --牝馬時の面白系統 {} {} '.format( i , h.name ,
+            if flg == 'b':
+                tmp = '{:>03} {:>15} {} --牝馬時の面白系統 {} {} '.format( i , h.name ,
                    h.rare , h.omoshiro[0] ,h.omoshiro[2])
+            else:
+                tmp = '{:>03} {:>15} {} --牡馬時の見事系統 {} {} '.format( i , h.name ,
+                   h.rare , h.omoshiro[1] , h.omoshiro[3])
             st_list.append(tmp)
         
         for i in range( len( st_list ) ):#登場パターンをボックスにセット
@@ -1592,7 +1624,6 @@ class abcdbrowser(originbrowser):
             mf_inbreed[0] = horse.name
 
 
-
         for n,i in zip( fmlist , mf_inbreed ):
             tmp = ds.get_inbreed( i )#血統名を渡して、インブリード効果があるのならその効果名が返ってくる
             txt = '      {:<4} {}        {}\n'.format( ds.fmnew[n] , i , tmp )
@@ -1609,26 +1640,409 @@ class abcdbrowser(originbrowser):
         self.firstwindow.tag_config( 'red' , underline = 1 , background = '#ff9999')
 
 
+#abcdブラウザーの牝馬に対する種牡馬検索バージョン
+class abcd_broodmare(abcdbrowser):
+    def __init__( self , frame ):
+        #super().__init__( frame )
+        #追加変更のウィジェット
+        
+        self.set_widgets( frame )
+        
+        self.set_list_first('b')#種牡馬のリストをセット
+        
+        self.fflist = []#父父候補の番号を収めたリスト
+        self.fmlist = []#父母候補の番号を収めたリスト
+        self.showflg = 0#母系か父系のどちらの検索を行っているのかを示すflg 0 -> 父父 : 1 -> 父母
+
+        self.ff_horse = []#父父候補の馬データクラスのリスト
+        self.fm_horse = []#父母候補の馬データクラスのリスト
+        
+
+    def set_widgets(self , frame ):
+        self.font_text = Ft.Font(size = 8 , family = 'Arial' )
+        
+        self.f1 = tk.Frame( frame , relief=tk.RIDGE, bd=2 )
+        #種牡馬表示リスト
+        self.firstlist = tk.Listbox( self.f1 , height = '8' , width = '65' , selectmode = 'SINGLE' )
+        self.firstbar = tk.Scrollbar(self.f1, orient = 'v', command = self.firstlist.yview )
+        self.firstlist.configure(yscrollcommand = self.firstbar.set)
+        #牝馬表示リスト
+        self.secondlist = tk.Listbox( self.f1 , height = '8' , width = '65' , selectmode = 'SINGLE' )
+        self.secondbar = tk.Scrollbar(self.f1, orient = 'v', command = self.secondlist.yview )
+        self.secondlist.configure(yscrollcommand = self.secondbar.set)
+
+        self.btstart = tk.Button(self.f1, text='1.繁殖牝馬決定', bg='coral1',
+                             bd=2 , padx =5 , command = self.set_first_B)
+        self.btstallions = tk.Button(self.f1, text='2.父父をリストに表示', bg='coral2',
+                             bd=2 , padx =5 , command = self.call_second_list_B('s') )
+        self.btbroodmare = tk.Button(self.f1, text='2.父母をリストに表示', bg='coral3',
+                             bd=2 , padx =5 , command = self.call_second_list_B('b') )
+        self.btshowinfo = tk.Button(self.f1, text='3.系統データ確認', bg='plum1',
+                             bd=2 , padx =5 , command = self.call_second_show )
+
+        self.deep = tk.BooleanVar()#多重検索を行うかの機能を追加
+        self.deep.set(False)
+        self.deep_check = tk.Checkbutton(self.f1 , text = 'B-CDの配合も検索（検索対象の数によって時間がかかる）', variable = self.deep,
+                                          onvalue = True , offvalue = False )
+
+        self.firstlist.grid( row = 1 , column = 0 , columnspan = 3 ,sticky = 'ns')
+        self.firstbar.grid( row = 1 , column = 3 , sticky = 'ns' + 'e')
+
+        self.btstart.grid(row = 2 , column = 0)
+        self.btstallions.grid(row = 3 , column = 0)
+        self.btbroodmare.grid(row = 3 , column = 1)
+        self.btshowinfo.grid(row = 5 , column = 0 )
+        self.deep_check.grid(row = 6 , column = 0 )
+        
+        self.secondlist.grid( row = 4 , column = 0 , columnspan = 3 ,sticky = 'ns')
+        self.secondbar.grid( row = 4 , column = 3 , sticky = 'ns' + 'e')
+
+        self.firstwindow = ScrolledText(self.f1 , height = '70' , font = self.font_text ,
+                                        width = '60' ,padx = '3' , pady = '3' , relief = 'groove')
+        self.firstwindow.grid( row = 1 , column = 4, rowspan = 6)
+
+
+    #選択された繁殖牝馬の血統をチェックする。ついでに完璧配合が可能かどうかも表示
+    def set_first_B(self):
+        
+        c = int( self.firstlist.get( tk.ACTIVE )[:3] )#リストから選択された、基本となる馬の番号
+
+        self.firstwindow.delete( 0.0 , tk.END )
+        txt = ds.broodmares[c].name + '\n\n'   
+        txt += self.ret_bloodtxt_father( ds.broodmares[c] )
+        #if ds.search_funny ( ds.broodmares[c].omoshiro + ds.broodmares[c].migoto ) == True:#完璧可能かチェック
+            #txt += '\n完璧配合が可能な種牡馬です\n\n'
+        txt += '\n\n見事or完璧な配合に必要な系統は... {0[0]} {0[1]} {0[2]} {0[3]} \n\n'.format(ds.broodmares[c].omoshiro)
+        txt += '候補になる父父(または父母)をリストにセットするので、ボタンでどちらかを選択してください\n\n'
+        self.firstwindow.insert( tk.END , txt )
+
+
+    #父父、または父母候補を作成するためのメソッド呼び出し
+    #引数's'or'b'で牡馬か牝馬か
+    def call_second_list_B(self,flg):
+        def t():
+            c = int( self.firstlist.get( tk.ACTIVE )[:3] )
+            if flg == 's':
+                self.set_ff_list( ds.broodmares[c] )
+            elif flg == 'b':
+                self.set_fm_list( ds.broodmares[c] )
+            
+        return t
+
+
+    #最終的な配合検索処理メソッドを呼び出す。
+    #引数で馬データを渡したいので設置
+    def call_second_show(self):
+        c = int( self.firstlist.get( tk.ACTIVE )[:3] )
+        self.second_show( ds.broodmares[c] )
+
+
+
+    #候補となる父父の検索とリストの作成表示
+    def set_ff_list(self , horse ):
+        #mflistには、種牡馬の番号と、残りの必要な系統2種類が収められた配列が返ってくる
+        self.ff_horse = self.get_fflist( horse )
+        self.set_list_second( self.ff_horse , 's' )
+        self.showflg = 0#セカンドリストで父父選択状態を示すフラグ
+
+
+    #候補となる父父の検索
+    #引数は基本の繁殖牝馬データクラス
+    #返り値は対象馬データクラスのリスト
+    def get_fflist(self , horse ):
+        readhorse_s = []#候補のリスト番号
+        retobj = []
+        #該当する父父をリストアップする
+        for i in range( len(ds.stallions) ):#種牡馬をイテレートして、レア度制限より上の種牡馬番号を抽出
+            if ds.stallions[i].rare >= ds.S_LIMIT:
+                readhorse_s.append(i)
+
+        for i in readhorse_s:
+            #検索対象牡馬が父になった時の面白系統が、引数の繁殖牝馬の面白系統に含まれているか
+            if ds.stallions[i].omoshiro[1] in horse.omoshiro and ds.stallions[i].omoshiro[3] in horse.omoshiro:
+                #父父の面白が同じ、かつ牝馬の面白が異なる4系統ならば見事配合が不可能なので登録しない
+                if self.chk_bldcount(horse.omoshiro) == 4 and ds.stallions[i].omoshiro[1] == ds.stallions[i].omoshiro[3]:
+                    pass
+                else:
+                    retobj.append( ds.stallions[i] )#対象馬の馬データクラスをリストに追加
+
+        return retobj
+
+
+
+
+    #候補となる父母の検索とリストの作成表示
+    def set_fm_list(self, horse ):
+        self.fm_horse = self.get_fmlist( horse )
+        self.set_list_second( self.fm_horse , 's' )
+        self.showflg = 1#セカンドリストで父母の選択状態を示すフラグ
+
+
+    #セカンドリスト作成のための牝馬のリストを作成
+    #返り値には馬のデータクラスを収めたリスト
+    def get_fmlist(self, horse ):
+        readhorse_b = []
+        retobj = []
+        #該当する母父をリストアップする
+        for i in range( len( ds.broodmares ) ):#種牡馬をイテレートして、検索レア度制限より上の牝馬の番号を抽出
+            if ds.broodmares[i].rare >= ds.B_LIMIT:
+                readhorse_b.append(i)
+
+        for i in readhorse_b:
+            if ds.broodmares[i].omoshiro[1] in horse.omoshiro and ds.broodmares[i].omoshiro[3] in horse.omoshiro:
+                #父母の面白が同じ、かつsearchbldが異なる4系統ならば見事配合が不可能なので登録しない
+                if self.chk_bldcount(horse.omoshiro) == 4 and ds.broodmares[i].omoshiro[1] == ds.broodmares[i].omoshiro[3]:
+                    pass
+                else:
+                    retobj.append( ds.broodmares[i] )
+
+        return retobj
+
+
+    #最終的なインブリード情報を表示
+    #引数horseは大元の検索対象の繁殖牝馬データクラス
+    def second_show(self , horse ):
+        self.firstwindow.tag_config( 'blue' , underline = 1 , background = 'sky blue')
+        less = []#見事配合成立のための、父母または父父によって2種類が決まった時の残りの2系統を探索するためのリスト
+        doflg = 0
+        check_s_list = []#完璧配合チェック用の馬番号を入れるリスト
+        check_b_list = []
+        
+        #リストが空でないか、きちんとセットされているかチェック
+        if (self.showflg == 0 and len(self.ff_horse) != 0) or (self.showflg == 1 and len(self.fm_horse) != 0):
+            doflg = 1
+        
+        if doflg != 0:#問題ないようなら検索開始
+            sc = int( self.secondlist.get( tk.ACTIVE )[:3] )#セカンドリストの選択された母父または母母候補のリスト番号を取得
+            
+            self.firstwindow.delete( 0.0 , tk.END )
+            txt = '検索の元の馬 ' + horse.name + '\n\n'   
+            txt += self.ret_bloodtxt_father( horse )
+            txt += '\n\n見事or完璧な配合に必要な系統は... {0[0]} {0[1]} {0[2]} {0[3]} \n\n\n'.format( horse.omoshiro )
+            self.firstwindow.insert ( tk.END , txt )
+            
+            if self.showflg == 0:#リストが父系
+                #完璧配合チェック用の配列に系統をセットする
+                #self.check_omo[4] = self.mf_horse[sc].omoshiro[0]
+                #self.check_omo[5] = self.mf_horse[sc].omoshiro[2]#父父の種牡馬作成時の面白チェック用の系統二つ
+                
+                txt = '\n\n    父父の持つ系統  \n'
+                self.firstwindow.insert ( tk.END , txt )
+                txt = '{}'.format(self.ff_horse[sc].omoshiro[0])
+                self.firstwindow.insert ( tk.END , txt )
+                txt = '  {}  '.format(self.ff_horse[sc].omoshiro[1])
+                self.firstwindow.insert ( tk.END , txt , 'blue')
+                txt = '{}'.format(self.ff_horse[sc].omoshiro[2])
+                self.firstwindow.insert ( tk.END , txt )
+                txt = '  {}'.format(self.ff_horse[sc].omoshiro[3])
+                self.firstwindow.insert ( tk.END , txt , 'blue')
+                txt = '\n    父父の持つインブリード血統\n\n'
+                self.firstwindow.insert ( tk.END , txt )
+                
+                self.ret_bloodtxt_motherfather( self.ff_horse[sc] , horse.blood )#母父(又は母母)のインブリードを表示する
+                #完璧配合作成のために必要な残りの系統を取得する.
+                #返り値lessはリストで、系統の名前
+                less = self.lesssearch( horse.omoshiro , self.ff_horse[sc].omoshiro[1] , self.ff_horse[sc].omoshiro[3] )
+                
+            elif self.showflg == 1:#リストが母系
+                #完璧配合チェック用の配列に系統をセットする
+                #self.check_omo[4] = self.mm_horse[sc].omoshiro[0]
+                #self.check_omo[5] = self.mm_horse[sc].omoshiro[2]#父父の種牡馬作成時の面白チェック用の系統二つ
+                
+                txt = '\n\n    父母の持つ系統 \n'
+                self.firstwindow.insert ( tk.END , txt )
+                txt = '{}'.format( self.fm_horse[sc].omoshiro[0] )
+                self.firstwindow.insert ( tk.END , txt )
+                txt = '  {}  '.format( self.fm_horse[sc].omoshiro[1] )
+                self.firstwindow.insert ( tk.END , txt , 'blue' )
+                txt = '{}'.format( self.fm_horse[sc].omoshiro[2] )
+                self.firstwindow.insert ( tk.END , txt )
+                txt = '  {}  '.format( self.fm_horse[sc].omoshiro[3] )
+                self.firstwindow.insert ( tk.END , txt , 'blue' )
+                
+                txt = '\n    父母の持つインブリード血統\n\n'                
+                self.firstwindow.insert ( tk.END , txt ) 
+                self.ret_bloodtxt_motherfather( self.fm_horse[sc] , horse.blood )#母母のインブリードを表示する
+                #完璧配合作成のために必要な残りの系統を取得する.
+                #返り値lessはリストで、系統の名前
+                less = self.lesssearch( horse.omoshiro , self.fm_horse[sc].omoshiro[1] , self.fm_horse[sc].omoshiro[3] )
+
+
+            #完璧配合成立な残りに系統になりうる組み合わせのサーチ            
+            if len(less) != 0:#一覧をひとまず表示
+                txt = '\n\n\n--- 見事完璧成立に必要な、残りの2系統の組み合わせ ---\n\n\n'
+                for pair in less:
+                    txt += ' [ {} - {} ] \n'.format( pair[0] , pair[1] )
+                txt += 'の{} 通り\n\n'.format( len(less) )
+                self.firstwindow.insert ( tk.END , txt )
+                for pair in less:
+                    txt = '========================================================\n' 
+                    txt += '========================================================\n' 
+                    txt += ' [ {} - {} ] の組み合わせになる牡馬と牝馬\n\n\n'.format( pair[0] , pair[1] )
+                    self.firstwindow.insert ( tk.END , txt ,'purple')
+                    self.firstwindow.tag_config( 'purple' , underline = 1 , background = '#ff00ff')
+
+                    check_s_list , check_b_list = self.search_fm( pair[0] , pair[1] , horse.blood )#2系統組み合わせのサーチと情報表示
+
+                    if len(check_s_list) != 0 and len(check_b_list) != 0:#返ってきたリストが空白でなければ完璧配合チェック
+                        if self.showflg == 0:#母父ｘ（CｘD）の組み合わせ
+                            self.check_omoshiro(self.showflg , self.ff_horse[sc] , check_s_list , check_b_list , horse.omoshiro )
+                        elif self.showflg == 1:#(CｘD） x 母母の組み合わせ
+                            self.check_omoshiro(self.showflg , self.fm_horse[sc] , check_s_list , check_b_list , horse.omoshiro )
+            else:#組み合わせが発見できなかった場合のテキスト表示
+                txt = '\n\n\n--- 見事完璧成立はむりっぽい？レア度を下げて再検索すれば出てくるかも ---\n\n'
+                self.firstwindow.insert ( tk.END , txt ) 
+
+
+
+
+
+    #引数の系統に合致する馬を探索する
+    #引数は探索対象の系統    sbld -> 牡馬の面白系統[0] bbld -> 牝馬の面白系統[0]
+    #baseblood -> 検索の大元の馬の血統リスト
+    def search_fm(self , sbld , bbld , baseblood ):
+        slist = []#対象となる牡馬の番号
+        blist = []#対象となる牝馬の番号
+
+        for i in range( 0 , len(ds.stallions) ):#種牡馬をイテレートして、レア度制限より上の種牡馬番号を抽出
+            if ds.stallions[i].rare >= ds.S_LIMIT:
+                if sbld == ds.stallions[i].omoshiro[2]:#見事になるのは
+                    slist.append(i)
+        #print(slist)
+        for i in range( 0 , len(ds.broodmares) ):#種牡馬をイテレートして、レア度制限より上の繁殖牝馬番号を抽出
+            if ds.broodmares[i].rare >= ds.B_LIMIT:
+                if bbld == ds.broodmares[i].omoshiro[2]:#見事になるのは
+                    blist.append(i)
+
+
+        #情報表示処理
+        txt = '\n{} を持つ種牡馬...{} 頭\n\n'.format( sbld , len(slist) )
+        self.firstwindow.insert ( tk.END , txt , 'blue') 
+        if len(slist) != 0:    
+            for i in slist:
+                txt = '      {}\n'.format( ds.stallions[i].name )#名前
+                self.firstwindow.insert ( tk.END , txt )
+                self.ret_bloodtxt_mmfather('s' , ds.stallions[i] , baseblood )
+
+
+
+        txt = '\n{} を持つ繁殖牝馬...{} 頭\n\n'.format( bbld , len(blist) )
+        self.firstwindow.insert ( tk.END , txt , 'blue' ) 
+        if len(blist) != 0:
+            for i in blist:
+                txt = '      {}\n'.format( ds.broodmares[i].name )#名前
+                self.firstwindow.insert ( tk.END , txt )    
+                self.ret_bloodtxt_mmfather('b' , ds.broodmares[i] , baseblood )
+        self.firstwindow.tag_config( 'blue' , underline = 1 , background = '#6666ff')
+        return slist,blist
+
+
+
+
+
+
+
+    #flg -> 0 ３頭の組み合わせ(父父(引数horse)　ｘ　（父母父ｘ父母母） )と、大元の牝馬が面白になっているのかのチェック
+    #なっていれば完璧配合、なっていなければ見事配合
+    #flg -> 1 ３頭の組み合わせ(（父父父ｘ父父母） x 父母(引数horse) )と、大元の牝馬が面白になっているのかのチェック
+    #flgは...horseの馬が 0_牡馬 x (牡馬x牝馬) ,1_ (牡馬x牝馬) X 牝馬
+    #baseomoshiroは、大元の牝馬の面白系統リスト
+    def check_omoshiro( self , flg , horse , slist , blist , baseomoshiro ):
+        self.firstwindow.tag_config( 'blue' , underline = 1 , background = '#9999ee')
+        searching = 0#完璧検索にヒットしたかどうか
+        txt = '\nその中で完璧配合になる組み合わせ...\n\n'
+        self.firstwindow.insert ( tk.END , txt )
+
+        tmp_omo = ['','','','']
+        if flg == 0:
+            tmp_omo[0] = horse.omoshiro[0]
+            tmp_omo[1] = horse.omoshiro[2]
+            for s in slist:
+                tmp_omo[2] = ds.stallions[s].omoshiro[0]
+                for b in blist:
+                    tmp_omo[3] = ds.broodmares[b].omoshiro[0]
+                    #見事系統の組み合わせの組み合わせの中から完璧判定を行う
+                    if ds.search_funny(baseomoshiro + tmp_omo ):
+                        searching = 1
+                        txt = '{} x ( {} - {} )\n\n'.format( horse.name ,ds.stallions[s].name ,
+                                                       ds.broodmares[b].name)
+                        #多重配合理論適合チェック
+                        if self.deep.get():
+                            txt += self.perfect_show( 's' , horse , ds.stallions[s] ,ds.broodmares[b])
+                        self.firstwindow.insert ( tk.END , txt )
+        elif flg == 1:
+            tmp_omo[0] = horse.omoshiro[0]
+            tmp_omo[1] = horse.omoshiro[2]
+            for s in slist:
+                tmp_omo[2] = ds.stallions[s].omoshiro[0]
+                for b in blist:
+                    tmp_omo[3] = ds.broodmares[b].omoshiro[0]
+                    #見事系統の組み合わせの組み合わせの中から完璧判定を行う
+                    if ds.search_funny( baseomoshiro + tmp_omo ):
+                        searching = 1
+                        txt = '( {} - {} ) x {}\n'.format( ds.stallions[s].name ,
+                                                       ds.broodmares[b].name , horse.name )
+                        #多重配合理論適合チェック
+                        if self.deep.get():
+                            txt += self.perfect_show( 'b' , horse , ds.stallions[s] ,ds.broodmares[b])
+                        self.firstwindow.insert ( tk.END , txt )
+
+
+
+        #完璧な組み合わせがなかった時のテキスト表示
+        if searching == 0:
+            txt = '\n\n完璧な配合になる組み合わせはありませんでした\n\n\n'
+        else:
+            #空白行挿入
+            txt = '\n\n\n\n'
+        self.firstwindow.insert ( tk.END , txt )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #おまけ
 #系統、インブリード所持馬検索
-#トップフレームで起動しようとするも、挙動が怪しいのでストップ中
+#トップフレームで起動しようとするも、挙動が怪しいのでストップ中→疑似タブで表示することに
 class thirdframe():
-    def __init__(self):
-        self.mainframe = tk.Tk()
+    def __init__(self, frame ):
+        super().__init__( )
+
         self.setVar()
-        self.setWidgets()
+        self.setWidgets(frame)
         
         
     #変数の設定
     def setVar(self):
-        #topframe.data_inbreed_set()#他クラスからインブリード効果をコンフィグの辞書にセット
-        #馬クラスを保持するリスト
-        #ds.stallions = []
-        #ds.broodmares = []
         
-        #self.readdata_from_sql()
+        """
+        馬のデータを読み込むルーチンワーク、独立したフレームとして起動する場合はコメントを外す
+        topframe.data_inbreed_set(self)#他クラスからインブリード効果をコンフィグの辞書にセット
+        #馬クラスを保持するリスト
+        ds.stallions = []
+        ds.broodmares = []
+        self.readdata_from_sql()
+        """
+        
         #検索系統のチェック変数
         self.omo = []
         tmp = []
@@ -1664,24 +2078,28 @@ class thirdframe():
                     'Swn','Pha','RC','Ted','Tom']
 
     #画面の作成
-    def setWidgets(self):
+    def setWidgets(self,frame):
+        self.f1 = tk.Frame( frame , relief=tk.RIDGE, bd=2 )
         #ラベル
-        self.topLabel = tk.Label(self.mainframe , text='系統検索フレーム', font= (None, 15) )
+        self.topLabel = tk.Label(self.f1 , text='系統検索フレーム', font= (None, 15) )
         self.topLabel.grid(row = 0,column = 0,columnspan =2)
         #検索ボタン
-        self.bt01 = tk.Button(self.mainframe, text='牡馬を検索', bg='cyan',
+        self.bt01 = tk.Button(self.f1, text='牡馬を検索', bg='cyan',
                              bd=2 , padx =6 , command = self.search_start('s') )
         self.bt01.grid(row = 2 , column = 0)
-        self.bt02 = tk.Button(self.mainframe, text='牝馬を検索', bg='orchid1',
+        self.bt02 = tk.Button(self.f1, text='牝馬を検索', bg='orchid1',
                              bd=2 , padx =6 , command = self.search_start('b') )
         self.bt02.grid(row = 2 , column = 1)
+        self.bt02 = tk.Button(self.f1, text='チェック全クリア', bg='orange2',
+                             bd=2 , padx =6 , command = self.line_all_clear )
+        self.bt02.grid(row = 2 , column = 3)
         #検索メニュー
         #系統検索
         m_title = ['面白1','面白2','面白3','面白4']
         
         self.bldmenu = []
         for i in range(0,4):
-            self.bldmenu.append( tk.Menubutton( self.mainframe , width = 16 ,text = m_title[i],
+            self.bldmenu.append( tk.Menubutton( self.f1 , width = 16 ,text = m_title[i],
                                             relief=tk.RIDGE  ) )
             
             self.bldmenu[i].grid(row = 3 , column = i )
@@ -1693,7 +2111,7 @@ class thirdframe():
             self.bldmenu[i]['menu'] = self.bldmenu[i].menu
 
         #インブリード検索1
-        self.inb_menu1 = tk.Menubutton( self.mainframe , width = 16 ,text = 'インブリード(英語名', relief=tk.RIDGE , bg = 'plum1')
+        self.inb_menu1 = tk.Menubutton( self.f1 , width = 16 ,text = 'インブリード(英語名', relief=tk.RIDGE , bg = 'plum1')
         self.inb_menu1.grid( row = 3 , column = 4 )
         self.inb_menu1.menu = tk.Menu(self.inb_menu1 , tearoff = 0)
         #メニュー項目のセット
@@ -1708,7 +2126,7 @@ class thirdframe():
         self.inb_menu1.menu.add_command( label = 'チェックをクリア' , command = self.c_mark_clear(2))
 
         #インブリード検索2
-        self.inb_menu2 = tk.Menubutton( self.mainframe , width = 16 ,text = 'インブリード(日本語名', relief=tk.RIDGE , bg = 'plum2')
+        self.inb_menu2 = tk.Menubutton( self.f1 , width = 16 ,text = 'インブリード(日本語名', relief=tk.RIDGE , bg = 'plum2')
         self.inb_menu2.grid( row = 3 , column = 5 )
         self.inb_menu2.menu = tk.Menu(self.inb_menu2 , tearoff = 0)
         #メニュー項目のセット
@@ -1724,10 +2142,42 @@ class thirdframe():
 
 
         #情報ウィンドウ
-        self.mw01 = ScrolledText( self.mainframe , height = 12, width = 80 ,
+        self.mw01 = ScrolledText( self.f1 , height = 24, width = 80 ,
                                   padx = 15 , pady = 15 , relief = 'groove')
         self.mw01.grid( row = 6, column = 0 , columnspan = 6)
         
+
+    def readdata_from_sql(self):#単独でフレームをインスタンスするときに使用
+        del ds.stallions[:]
+        del ds.broodmares[:]
+
+        conn = sqlite3.connect(ds.DB_FILE)
+        curs = conn.cursor()
+        sql = "select * from stallionsdata order by rarepoint desc,horsename asc"
+        curs.execute( sql )
+        stallions = curs.fetchall()#種牡馬データ
+        sql = "select * from broodmaresdata order by rarepoint desc,horsename asc"
+        curs.execute( sql )
+        broodmares = curs.fetchall()#繁殖牝馬データ
+        sql = "select * from origin_sdata"
+        curs.execute( sql )
+        st_origin = curs.fetchall()#種牡馬データ
+        sql = "select * from origin_bdata"
+        curs.execute( sql )
+        br_origin = curs.fetchall()#繁殖牝馬データ
+        conn.commit()
+        conn.close()  
+        
+        #データベースから読み込んだデータをリストに追加    
+        for s in st_origin:
+            ds.stallions.append( horse(s) )#自家製馬データをインスタンスしてクラスにセット
+        for b in br_origin:
+            ds.broodmares.append( horse(b) )#自家製馬データをインスタンスしてクラスにセット
+        for s in stallions:
+            ds.stallions.append( horse(s) )#馬データをインスタンスしてクラスにセット
+        for b in broodmares:
+            ds.broodmares.append( horse(b) )#馬データをインスタンスしてクラスにセット
+
 
 
 
@@ -1743,17 +2193,26 @@ class thirdframe():
                     self.inb_chk2[i].set(False)
         return t
         
+    #選択リスト系統4つを全クリア
+    def  line_all_clear( self ):
+        for i in range(0,4):
+            for j in range(0,15):
+                self.omo[i][j].set(False)
+        self.c_mark_clear(1)
+        self.c_mark_clear(2)
 
         
 
     #引数のタプルは、何列目の何個目のチェックをへんこうするのかの動作確認用
     def set_blood(self,tpl):
+        pass
+        """
         def t():
             print(tpl)
             for i in range(0,15):
                 print('check',self.omo[tpl[0]][i].get() )
         return t
-
+        """
         
     #引数 flg s->牡馬 b->牝馬　の検索を実行
     #面白配合のチェックをしている列の系統に該当する馬を検索する。
@@ -1828,14 +2287,20 @@ class thirdframe():
                         tmphorse.append(b)
 
             #結果表示
-            if len( tmphorse ) != 0:
-                txt += '検索にヒットした馬は...\n'
+            if len( tmphorse ) >= 6:#検索にヒットした馬が多い場合は簡易的表示
+                txt += '検索にヒットした馬は...{}頭います\n\n'.format( len(tmphorse) )
                 for h in tmphorse:
                     txt += '{0} {1:<25} {2[0]}-{2[1]}-{2[2]}-{2[3]}\n'.format( h.rare , h.name , h.omoshiro )
                 txt += 'になります'
-            else:
+            elif len ( tmphorse ) <= 5:#検索にヒットした馬が少数の場合、インブリード血統詳細も表示する
+                txt += '検索にヒットした馬は...{}頭います\n\n'.format( len(tmphorse) )
+                for h in tmphorse:
+                    txt += h.show_selfdata_light() + '\n\n\n'
+                txt += 'になります'
+            elif len (tmphorse ) == 0:
                 txt += '\n\n\n検索にヒットした馬はいませんでした\n'
             self.show_message01(txt , 1)
+            
         return t
 
 
