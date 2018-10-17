@@ -23,11 +23,12 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
         self.mainframe = tk.Tk()
         self.setVar()
         self.data_init()
-        self.mframe = mainbrowser( self.mainframe )
-        self.oframe = originbrowser( self.mainframe )
-        self.abcdframe = abcdbrowser( self.mainframe )
-        self.abcd_B_frame = abcd_broodmare( self.mainframe )
-        self.sframe = thirdframe( self.mainframe )
+        self.mframe = mainbrowser( self.mainframe )#メインA(BC)検索
+        self.oframe = originbrowser( self.mainframe )#自家製作成
+        self.abcdframe = abcdbrowser( self.mainframe )#A(B(CD))牡馬
+        self.abcd_B_frame = abcd_broodmare( self.mainframe )#A(B(CD))牝馬
+        self.sframe = thirdframe( self.mainframe )#血統検索
+        self.dframe = origin_delete( self.mainframe )#自家製削除
         
         self.setWidgets()
         self.setMenu( self.mainframe )
@@ -40,10 +41,11 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
         self.rarelimit.set(3)#検索対称のレア度下限設定のデフォルト
         self.rarelimitB = tk.IntVar()
 
-
         self.rarelimitB.set(3)#検索対称のレア度下限設定のデフォルト
         self.tmpthrough = tk.BooleanVar()#自家製馬をデータベースに保存する場合は0、保存しない場合は1を立てる
         self.tmpthrough.set(False)
+
+
         
 
 
@@ -63,14 +65,15 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
         self.btload03 = tk.Button(self.f0, text='A-(B-CD)サーチ', bg='azure2', font = self.font_button ,
                              bd=3 , padx =3 , command = self.show_abcd_browser )
         self.btload03.grid(row = 0 , column = 3)
-        #機能切り替えボタン4(休止中)
+        #機能切り替えボタン4
         self.btload04 = tk.Button(self.f0, text='A-(B-CD)サーチ(牝', bg='azure3', font = self.font_button ,
                              bd=3 , padx =3 , command = self.show_abcd_B_browser )
         self.btload04.grid(row = 0 , column = 4)
-        #機能切り替えボタン5(休止中)
-        self.btload05 = tk.Button(self.f0, text='血統検索', bg='dark sea green', font = self.font_button ,
+        #機能切り替えボタン5
+        self.btload05 = tk.Button(self.f0, text='サポート', bg='dark sea green', font = self.font_button ,
                              bd=3 , padx =3 , command = self.show_bloodsearch_browser )
         self.btload05.grid(row = 0 , column = 5)
+
         self.f0.grid(row = 0 , column = 0)
 
 
@@ -139,6 +142,7 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
         self.oframe.set_list_b()
         self.abcdframe.set_list_first('s')
         self.abcd_B_frame.set_list_first('b')
+        self.dframe.set_del_list()
 
 
 
@@ -228,36 +232,39 @@ class topframe():#一番最初に読み込まれるフレーム。ここから�
 
     #表示するフレームの切り替え
     def show_main_browser( self ):
-        self.mframe.f1.grid(row = 1,column = 0)
+        self.mframe.f1.grid(row = 1,column = 0,rowspan = 2)
         #self.fframe.f1.grid_remove()
 
 
     #表示するフレームの切り替え
     def show_origin_browser( self ):
-        self.oframe.f1.grid(row = 1,column = 1)
+        self.oframe.f1.grid(row = 1,column = 1,rowspan = 2)
         self.abcdframe.f1.grid_remove()
         self.abcd_B_frame.f1.grid_remove()
         self.sframe.f1.grid_remove()
+        self.dframe.f1.grid_remove()
 
 
     #表示するフレームの切り替え
     def show_abcd_browser( self ):
-        self.abcdframe.f1.grid(row = 1,column = 1)
+        self.abcdframe.f1.grid(row = 1,column = 1,rowspan = 2)
         self.oframe.f1.grid_remove()
         self.abcd_B_frame.f1.grid_remove()
         self.sframe.f1.grid_remove()
+        self.dframe.f1.grid_remove()
 
     #表示するフレームの切り替え（右側をabcd牝馬フレームに
     def show_abcd_B_browser( self ):
-        self.abcd_B_frame.f1.grid(row = 1,column = 1)
+        self.abcd_B_frame.f1.grid(row = 1,column = 1,rowspan = 2)
         self.oframe.f1.grid_remove()
         self.abcdframe.f1.grid_remove()
         self.sframe.f1.grid_remove()
-
+        self.dframe.f1.grid_remove()
 
     #表示するフレーム切り替え（右側を血統検索に
     def show_bloodsearch_browser( self ):
         self.sframe.f1.grid(row = 1,column = 1)
+        self.dframe.f1.grid(row = 2,column = 1)
         self.oframe.f1.grid_remove()
         self.abcdframe.f1.grid_remove()
         self.abcd_B_frame.f1.grid_remove()
@@ -283,6 +290,9 @@ class mainbrowser:
         self.o_describe.set(False)
         self.a_describe = tk.BooleanVar()
         self.a_describe.set(False)
+        
+        self.brood_extend = tk.BooleanVar()#牝馬の拡張検索をおこなうか
+        self.brood_extend.set(False)
 
 
     #表示ウィジェット初期化 
@@ -314,6 +324,8 @@ class mainbrowser:
                                           onvalue = True , offvalue = False )
         self.describe3_check = tk.Checkbutton(self.f1 , text = '非凡所持馬詳細表示', variable = self.a_describe,
                                           onvalue = True , offvalue = False )
+        self.describe4_check = tk.Checkbutton(self.f1 , text = '牝馬の見事完璧追加検索', variable = self.brood_extend,
+                                          onvalue = True , offvalue = False )
 
         #検索ボタン(子) 
         self.btchilds = tk.Button(self.f1, text='子供の情報(牡', bg='spring green',font = self.font_button2 ,
@@ -328,6 +340,7 @@ class mainbrowser:
         self.describe_check.grid(row = 0 , column = 1)
         self.describe2_check.grid(row = 1 , column = 1)
         self.describe3_check.grid(row = 2 , column = 1)
+        self.describe4_check.grid(row = 6 , column = 0)
         
         self.slist.grid( row = 4 , column = 0 , columnspan = 3, sticky = 'ns')
         self.sbar.grid( row = 4 , column = 2 , sticky = 'ns' + 'e')
@@ -444,19 +457,47 @@ class mainbrowser:
             txt = 'なし\n\n\n'
             self.firstwindow.insert( tk.END , txt )
 
-
-
-
-
-
         #牡牝の組み合わせで出来た種牡馬が、見事または完璧な配合の組み合わせがあるのかどうか
         txt = self.search_cross_cross_broodmare( bro )
         self.firstwindow.insert( tk.END , txt )
+
+        if self.brood_extend.get():#拡張検索(牝馬のみ)を行うのかどうか
+            txt = self.broodmare_extend_search(bro)
+            self.firstwindow.insert( tk.END , txt )
         
 
         self.inbreed_st_show( bro )#メイン検索馬インブリード表示専用窓に種牡馬のインブリード血統を表示             
         self.firstwindow.tag_config( 'red' , underline = 1 , background = '#ff9999')
         self.firstwindow.tag_config( 'blue' , underline = 1 , background = '#bbbbff')
+
+
+
+    #引数bro の牝馬と、種牡馬リストの馬とできた仔（牝馬）に完璧や見事が成立するかを一括検索
+    def broodmare_extend_search(self , bro ):
+        rettxt = '\n\n\n\n繁殖牝馬 {} の仔が牝馬の時、その仔に完璧や見事が成立する種牡馬を一括検索\n\n\n\n'.format(bro.name)
+        slist = []#検索対象の馬クラスを格納するリスト
+        migotolist = []
+        kanpekilist = []
+        for i in range( 0 , len(ds.stallions) ):#種牡馬をイテレートして、レア度制限より上の種牡馬番号を抽出
+            if ds.stallions[i].rare >= ds.S_LIMIT:
+                slist.append( ds.stallions[i] )
+
+        for s,horse in enumerate( slist ):
+            tmphorse = horse.make_horse_to_broodmare(bro)
+            migotolist,kanpekilist = tmphorse.search_cross_to('b' , slist )#返り値はそれぞれ、slistのインデックス番号
+            if len(migotolist) > 0 or len(kanpekilist) > 0:
+                rettxt += '\n{}との組み合わせでできた仔は\n\n'.format( horse.name )
+                for m in migotolist:
+                    rettxt += '.... {} と見事配合が成立\n\n'.format( slist[m].name )
+                for k in kanpekilist:
+                    rettxt += '.... {} と完璧配合が成立\n\n'.format( slist[k].name )
+
+        return rettxt + '\n\n'
+                
+        
+
+
+
 
 
     #専用窓に引数の馬クラスのインブリード血統を表示
@@ -645,7 +686,7 @@ class mainbrowser:
     #引数sta牡馬 と完璧配合になる繁殖牝馬の,牡馬牝馬の組み合わせを探る
     #返り値は牡馬牝馬の名前の組み合わせの名前をテキストで
     def search_cross_cross(self , sta ):
-        print('in search cross cross')
+        #print('in search cross cross')
         migoto_pair = '\n\n\n牡馬{}と見事配合が成立する牡馬ｘ牝馬の組み合わせ...\n\n'.format(sta.name)#探索した組み合わせをテキストで...見事
         perfect_pair = '\n\n\n牡馬{}と完璧配合が成立する牡馬ｘ牝馬の組み合わせ...\n\n'.format(sta.name)#探索した組み合わせをテキストで...完璧
         m_flg = 0
@@ -685,7 +726,7 @@ class mainbrowser:
     #引数bro牝馬 と完璧配合になる種牡馬の,牡馬牝馬の組み合わせを探る
     #返り値は牡馬牝馬の名前の組み合わせの名前をテキストで
     def search_cross_cross_broodmare(self , bro ):
-        print('in search cross cross broodmare')
+        #print('in search cross cross broodmare')
         migoto_pair = '\n\n\n牝馬{}と見事配合が成立する牡馬ｘ牝馬の組み合わせ...\n'.format(bro.name)#探索した組み合わせをテキストで...見事
         perfect_pair = '\n\n\n牝馬{}と完璧配合が成立する牡馬ｘ牝馬の組み合わせ...\n'.format(bro.name)#探索した組み合わせをテキストで...完璧
 
@@ -815,8 +856,8 @@ class originbrowser( mainbrowser ):
         self.firstwindow.grid( row = 1 , column = 2, rowspan = 4)
 
         #自家製削除用に右クリック対応をバンドル
-        self.slist.bind('<Button-3>', self.delete_origin )#削除機能テスト。別窓開く
-        self.blist.bind('<Button-3>', self.delete_origin )#削除機能テスト。別窓開く
+        #self.slist.bind('<Button-3>', self.delete_origin )#削除機能テスト。別窓開く
+        #self.blist.bind('<Button-3>', self.delete_origin )#削除機能テスト。別窓開く
 
 
     #デフォルト用のからデータの馬クラスをインスタンスして返す
@@ -2076,12 +2117,15 @@ class thirdframe():
 
         self.bld_txt = ['Ec','Fa','Hmp','Her','Him','ND','Nas','Nea','Mach','Sts',
                     'Swn','Pha','RC','Ted','Tom']
+        self.ck_gen = tk.BooleanVar()#インブリード検索時、代重ねで消える血統を省くかどうかのチェック
+        self.ck_gen.set(False)
+        
 
     #画面の作成
     def setWidgets(self,frame):
         self.f1 = tk.Frame( frame , relief=tk.RIDGE, bd=2 )
         #ラベル
-        self.topLabel = tk.Label(self.f1 , text='系統検索フレーム', font= (None, 15) )
+        self.topLabel = tk.Label(self.f1 , text='面白系統検索フレーム', font= (None, 15) )
         self.topLabel.grid(row = 0,column = 0,columnspan =2)
         #検索ボタン
         self.bt01 = tk.Button(self.f1, text='牡馬を検索', bg='cyan',
@@ -2093,9 +2137,12 @@ class thirdframe():
         self.bt02 = tk.Button(self.f1, text='チェック全クリア', bg='orange2',
                              bd=2 , padx =6 , command = self.line_all_clear )
         self.bt02.grid(row = 2 , column = 3)
+        self.ck01 = tk.Checkbutton(self.f1 , text = '4代前を検索から除外', variable = self.ck_gen,
+                                          onvalue = True , offvalue = False )
+        self.ck01.grid(row = 2 , column = 4 , columnspan = 2)
         #検索メニュー
         #系統検索
-        m_title = ['面白1','面白2','面白3','面白4']
+        m_title = ['面白1(父)','面白2(父母父)','面白3(母父)','面白4(母母父)']
         
         self.bldmenu = []
         for i in range(0,4):
@@ -2271,10 +2318,10 @@ class thirdframe():
             #検索
             if flg == 's':#牡馬の場合
                 for s in ds.stallions:
-                    s.check_inb( tmpinb , allselected )
+                    s.check_inb( tmpinb , allselected , self.ck_gen.get() )
             elif flg == 'b':#牝馬の場合
                 for b in ds.broodmares:
-                    b.check_inb( tmpinb , allselected )
+                    b.check_inb( tmpinb , allselected , self.ck_gen.get() )
 
             #対象馬抽出
             if flg == 's':
@@ -2310,6 +2357,146 @@ class thirdframe():
         if flg == 1:#テキストウィンドウを消去
             self.mw01.delete( 1.0 , tk.END )
         self.mw01.insert( tk.END , txt )
+
+
+
+
+
+#自家製馬の削除用フレーム
+class origin_delete():
+    def __init__(self, frame ):
+        super().__init__( )
+
+        self.setVar()
+        self.setWidgets(frame)
+        self.set_del_list()
+        
+        
+    #変数の設定
+    def setVar(self):
+        self.name_list_st = []#削除用に自家製馬の名前をセットする配列
+        self.name_list_br = []#削除用に自家製馬の名前をセットする配列
+      
+
+    #画面の作成
+    def setWidgets(self,frame):
+        self.f1 = tk.Frame( frame , relief=tk.RIDGE, bd=2 )
+        #ラベル
+        self.topLabel = tk.Label(self.f1 , text='自家製削除フレーム', font= (None, 15) )
+        self.topLabel.grid(row = 0,column = 0,columnspan =2)
+        #ラベル
+        self.Label01 = tk.Label(self.f1 , text='自家製牡馬', font= (None, 12) )
+        self.Label01.grid(row = 1,column = 0)
+        self.Label02 = tk.Label(self.f1 , text='自家製牝馬', font= (None, 12) )
+        self.Label02.grid(row = 1,column = 1)
+
+
+        #検索ボタン
+        self.bt01 = tk.Button(self.f1, text='牡馬を削除', bg='cyan',
+                             bd=2 , padx =6 , command = self.call_delete('s') )
+        self.bt01.grid(row = 4 , column = 0)
+        self.bt02 = tk.Button(self.f1, text='牝馬を削除', bg='orchid1',
+                             bd=2 , padx =6 , command = self.call_delete('b') )
+        self.bt02.grid(row = 4 , column = 1)
+
+        #種牡馬表示リスト
+        self.slist = tk.Listbox( self.f1 , height = '15' , width = '60' , selectmode = 'SINGLE' )
+        self.sbar = tk.Scrollbar(self.f1, orient = 'v', command = self.slist.yview )
+        self.slist.configure(yscrollcommand = self.sbar.set)
+        #牝馬表示リスト
+        self.blist = tk.Listbox( self.f1 , height = '15' , width = '60' , selectmode = 'SINGLE' )
+        self.bbar = tk.Scrollbar(self.f1, orient = 'v', command = self.blist.yview )
+        self.blist.configure(yscrollcommand = self.bbar.set)
+
+        self.slist.grid( row = 2 , column = 0 , sticky = 'ns')
+        self.sbar.grid( row = 2 , column = 0 , sticky = 'ns' + 'e')
+        self.blist.grid( row = 2 , column = 1 , sticky = 'ns')
+        self.bbar.grid( row = 2 , column = 1 , sticky = 'ns' + 'e')
+
+
+
+    #リストに自家製馬を読み込むメソッド
+    def originlist_set(self , flg ):
+        if flg == 's':
+            dat = 'origin_sdata'
+            del self.name_list_st[:]#変数初期化
+            lastnum = self.slist.index( tk.END )
+            self.slist.delete( 0 , lastnum )
+        elif flg == 'b':
+            dat = 'origin_bdata'
+            del self.name_list_br[:]
+            lastnum = self.blist.index( tk.END )
+            self.blist.delete( 0 , lastnum )
+
+        st_list = []#リストに表示するための文字列のリスト
+        tmp = ''
+        list_origin = []
+        conn = sqlite3.connect(ds.DB_FILE)
+        curs = conn.cursor()
+        sql = "select * from {}".format(dat)
+        curs.execute( sql )
+        list_origin = curs.fetchall()#馬データ
+        conn.commit()
+        conn.close()  
+
+
+        for i,horse in enumerate( list_origin ):
+            #リストに表示する文字列を作成していく
+            tmp = '{:>03}:R{} {:<15}'.format(i , horse[1] , horse[0] )
+            st_list.append(tmp)#表示用
+            if flg == 's':
+                self.name_list_st.append( horse[0] )#削除のために名前のみを保存するリスト
+            elif flg == 'b':
+                self.name_list_br.append( horse[0] )#削除のために名前のみを保存するリスト
+
+        if flg == 's':
+            for i in range( len( st_list ) ):#登場パターンをボックスにセット
+                self.slist.insert ( i , st_list[i] )
+        elif flg == 'b':
+            for i in range( len( st_list ) ):#登場パターンをボックスにセット
+                self.blist.insert ( i , st_list[i] )
+
+
+    #delete method
+    def call_delete(self , flg ):
+        def t():
+            current = 0#削除したい馬→リストの何行目かを選択中か
+            if flg == 's':
+                dat = 'origin_sdata'#削除先のデータベース
+                current = int( self.slist.get( tk.ACTIVE )[:3] )#リストの選択された行が何行目かを取得 0スタート
+                name = self.name_list_st[current]
+            elif flg == 'b':
+                dat = 'origin_bdata'
+                current = int( self.blist.get( tk.ACTIVE )[:3] )#リストの選択された行が何行目かを取得 0スタート
+                name = self.name_list_br[current]
+
+            #dialogで確認
+            if Mb.askokcancel(title = '自家製馬の削除',message = '{}をデータベースから削除しますがよろしいですか？'.format(name)):
+                try:
+                    conn = sqlite3.connect(ds.DB_FILE)
+                    curs = conn.cursor()
+                    sql = 'delete from {} where horsename = "{}"'.format(dat,name)
+                    curs.execute( sql )
+                    conn.commit()
+                    conn.close()  
+
+                except sqlite3.OperationalError:
+                    print('sql:',sql)
+                    print('エラー{}がみつからないっぽい？'.format(name) )
+            if flg == 's':
+                self.originlist_set('s')
+            else:
+                self.originlist_set('b')
+        return t
+
+
+    #call method
+    def set_del_list(self):
+        self.originlist_set('s')
+        self.originlist_set('b')
+
+
+
 
 
 
@@ -2400,14 +2587,21 @@ class horse:
 
     #外部から呼ばれる、検索対象フラグをセットするメソッド
     #引数 bldlst...検索対象インブリード名が入ったリスト flg...1の場合、全通し
-    def check_inb(self , inblst , flg = 0 ):
+    #genflg ... 4代前（ひとつ代重ねで消える）をインブリード検索対象から外す
+    def check_inb(self , inblst , flg = 0 , genflg = False ):
         inbchk = 0
         if flg == 1:
             inbchk = 1
         else:
-            for b in self.blood:
-                if b in inblst:
-                    inbchk = 1
+            if genflg == True:
+                loop = [0,1,2,5,8,9,12]
+                for b in loop:
+                    if self.blood[b] in inblst:
+                        inbchk = 1
+            else:
+                for b in self.blood:
+                    if b in inblst:
+                        inbchk = 1
         
         if inbchk == 1:
             self.hav_inb = 1
